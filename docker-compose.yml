@@ -22,8 +22,9 @@ services:
     build: front-vue
     volumes:
       - ./front-vue/app/:/front
+      - /front/node_modules
     ports: 
-      - 8081:8080
+      - 8081:80
     networks:
       - main
     depends_on:

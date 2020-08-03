@@ -9,6 +9,13 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
+import environ
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+# reading .env file
+environ.Env.read_env()
 
 import os
 
@@ -20,12 +27,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'h63buu_kd7k-9+hk#g+jp1y15&w=u0&5a*omaer@*lgkonq+k0'
+SECRET_KEY = ('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['back', '172.19.0.3']
+ALLOWED_HOSTS = ['back', '172.19.0.3', '127.0.0.1', 'aula-cloud-django.rj.r.appspot.com']
 
 
 # Application definition
@@ -81,16 +88,31 @@ WSGI_APPLICATION = 'wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-      'ENGINE': 'django.db.backends.mysql',
-      'NAME': 'djangoapp_db',
-      'USER': 'root',
-      'PASSWORD': 'root',
-      'HOST': 'db',
-      'PORT': '3306',
+
+if os.getenv('GAE_APPLICATION', None):
+    # Nesse caso está em execução no App Engine, e conecta o Google Cloud SQL usando 
+    # o socker unix em /cloudsql/<your-cloudsql-connection>
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': env('DB_APP_ENGINE_HOST'),
+            'USER': env('DB_APP_ENGINE_USER'),
+            'PASSWORD': env('DB_APP_ENGINE_PASSWORD'),
+            'NAME': env('DB_APP_ENGINE_NAME'),
+        }
     }
-}
+else:
+    # Nesse caso, rodando localmente, e é necessário acessar via o Cloud SQL Proxy
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'PORT': '3336',
+            'HOST': env('DB_LOCAL_HOST'),
+            'USER': env('DB_LOCAL_USER'),
+            'PASSWORD': env('DB_LOCAL_PASSWORD'),
+            'NAME': env('DB_LOCAL_NAME'),
+        }
+    }
 
 
 # Password validation
@@ -130,3 +152,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
